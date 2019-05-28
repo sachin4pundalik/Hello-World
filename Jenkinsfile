@@ -2,56 +2,22 @@ pipeline{
 	agent any
 		stages{
 
-			stage('One'){
-				steps{
-					echo 'Hi, this Sachin..'
-				}	
-			 }
+			stage('Build') {
+			    steps {
+				sh 'make' (1)
+				archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true (2)
+			    }
+			}
 
-			stage('Two'){
-				steps{
-					input('Do you want to proceed ?')
-				}	
-			 }
-
-			 stage('Three'){
-
-				when {
-					not {
-					  branch "master"
-					}
-				}
-				steps{
-					echo "I am new to Canada"
-				}	
-			 }
-
-			 stage('Four'){
-				parallel{
-				
-					stage('Unit Test'){
-						steps{
-							echo "Running the unot test..."
-						}	
-					}
-
-
-					stage('Integration Test'){
-
-						agent{
-						      docker {
-							reuseNode false
-							image 'ubuntu'
-						      }	
-						}
-						steps{
-							echo "Running the Integration test..."
-						}	
-					}
-				}
-
-			 }
-
+			stage('Test') {
+			    steps {
+				/* `make check` returns non-zero on test failures,
+				* using `true` to allow the Pipeline to continue nonetheless
+				*/
+				sh 'make check || true' (1)
+				junit '**/target/*.xml' (2)
+			    }
+			}
 		      }	
 
 }
